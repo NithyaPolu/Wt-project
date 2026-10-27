@@ -1,0 +1,214 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Doubt Discussion - SkillLink</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>SkillLink</h1>
+
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="students.html">Find Students</a>
+      <a href="requests.html">Requests</a>
+      <a href="connections.html">Connections</a>
+      <a href="add-video.html">Add Video</a>
+      <a href="videos.html">Learning Videos</a>
+      <a href="doubts.html">Doubt Discussion</a>
+      <a href="about.html">About</a>
+      <button onclick="logout()">Logout</button>
+
+      <hr />
+
+      <div class="about-container">
+        <h2>Doubt Discussion</h2>
+        <p>Choose a connected student to ask or answer doubts.</p>
+
+        <label for="studentSelect">Connected Students</label>
+        <select id="studentSelect">
+          <option value="">Select a student</option>
+        </select>
+
+        <div id="messagesList">
+          Select a connected student to view messages.
+        </div>
+
+        <form id="messageForm">
+          <textarea
+            id="message"
+            placeholder="Type your doubt or reply..."
+            required
+          ></textarea>
+          <button type="submit">Send Message</button>
+        </form>
+
+        <p id="statusMessage"></p>
+      </div>
+    </div>
+
+    <script>
+      let email = localStorage.getItem("userEmail");
+      let selectedEmail = "";
+
+      if (!email) {
+        window.location.href = "login.html";
+      } else {
+        loadConnections();
+      }
+
+      function loadConnections() {
+        fetch(
+          "http://localhost:8080/doubtConnections?email=" +
+            encodeURIComponent(email),
+        )
+          .then((response) => response.text())
+          .then((result) => {
+            let select = document.getElementById("studentSelect");
+
+            if (result.trim() == "") {
+              select.innerHTML = '<option value="">No connections yet</option>';
+              return;
+            }
+
+            let students = result.split("||");
+
+            for (let i = 0; i < students.length; i++) {
+              if (students[i] != "") {
+                let values = students[i].split("|");
+                let option = document.createElement("option");
+
+                option.value = values[1];
+                option.textContent = values[0] + " (" + values[1] + ")";
+
+                select.appendChild(option);
+              }
+            }
+          })
+          .catch(() => {
+            document.getElementById("statusMessage").textContent =
+              "Could not load connections. Check whether the server is running.";
+          });
+      }
+
+      document
+        .getElementById("studentSelect")
+        .addEventListener("change", function () {
+          selectedEmail = this.value;
+
+          if (selectedEmail == "") {
+            document.getElementById("messagesList").textContent =
+              "Select a connected student to view messages.";
+            return;
+          }
+
+          loadMessages();
+        });
+
+      function loadMessages() {
+        fetch(
+          "http://localhost:8080/messages?email=" +
+            encodeURIComponent(email) +
+            "&otherEmail=" +
+            encodeURIComponent(selectedEmail),
+        )
+          .then(async (response) => {
+            let result = await response.text();
+
+            if (!response.ok) {
+              throw new Error(result);
+            }
+
+            return result;
+          })
+          .then((result) => {
+            let list = document.getElementById("messagesList");
+            list.innerHTML = "";
+
+            if (result.trim() == "") {
+              list.textContent = "No messages yet. Start the conversation!";
+              return;
+            }
+
+            let messages = result.split("||");
+
+            for (let i = 0; i < messages.length; i++) {
+              if (messages[i] != "") {
+                let values = messages[i].split("|");
+                let item = document.createElement("div");
+                let text = document.createElement("p");
+                let time = document.createElement("small");
+
+                text.textContent =
+                  (values[0] == email ? "You: " : "Them: ") + values[2];
+
+                time.textContent = values[3];
+
+                item.appendChild(text);
+                item.appendChild(time);
+                list.appendChild(item);
+              }
+            }
+          })
+          .catch((error) => {
+            document.getElementById("messagesList").textContent =
+              error.message || "Could not load messages.";
+          });
+      }
+
+      document
+        .getElementById("messageForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          let message = document.getElementById("message").value.trim();
+
+          if (selectedEmail == "") {
+            document.getElementById("statusMessage").textContent =
+              "Please select a connected student first.";
+            return;
+          }
+
+          if (message == "") {
+            return;
+          }
+
+          let data = new URLSearchParams({
+            senderEmail: email,
+            receiverEmail: selectedEmail,
+            message: message,
+          });
+
+          fetch("http://localhost:8080/sendMessage", {
+            method: "POST",
+            body: data,
+          })
+            .then(async (response) => {
+              let result = await response.text();
+
+              if (!response.ok) {
+                throw new Error(result);
+              }
+
+              return result;
+            })
+            .then((result) => {
+              document.getElementById("statusMessage").textContent = result;
+              document.getElementById("message").value = "";
+              loadMessages();
+            })
+            .catch((error) => {
+              document.getElementById("statusMessage").textContent =
+                error.message || "Could not send message.";
+            });
+        });
+    </script>
+    <script>
+      function logout() {
+        localStorage.removeItem("userEmail");
+        window.location.href = "login.html";
+      }
+    </script>
+  </body>
+</html>

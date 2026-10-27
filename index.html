@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SkillLink - Learn. Share. Connect.</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <nav>
+      <div class="logo">SkillLink</div>
+
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="register.html" id="registerLink">Register</a>
+        <a href="login.html" id="loginLink">Login</a>
+        <a href="dashboard.html" id="dashboardLink" style="display: none">
+          Dashboard
+        </a>
+        <a href="about.html">About</a>
+        <button
+          id="logoutButton"
+          onclick="logout()"
+          style="display: none; margin: 5px"
+        >
+          Logout
+        </button>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <h1>Welcome to SkillLink</h1>
+      <h2>Learn. Share. Connect.</h2>
+      <p>
+        Discover new skills, share your knowledge, and learn together with other
+        students in a supportive community.
+      </p>
+
+      <p>
+        <a href="register.html" id="getStartedLink">
+          <button type="button">Get Started</button>
+        </a>
+        <a href="login.html" id="heroLoginLink">
+          <button type="button">Login</button>
+        </a>
+        <a href="dashboard.html" id="heroDashboardLink" style="display: none">
+          <button type="button">Go to Dashboard</button>
+        </a>
+      </p>
+    </section>
+
+    <section class="skills">
+      <h2>What Can You Do?</h2>
+      <p>Teach what you know and learn what you love.</p>
+
+      <div class="skill-container">
+        <div class="skill-card">
+          <h3>Java</h3>
+          <p>Learn programming and problem-solving.</p>
+        </div>
+
+        <div class="skill-card">
+          <h3>Python</h3>
+          <p>Explore coding and automation.</p>
+        </div>
+
+        <div class="skill-card">
+          <h3>Web Development</h3>
+          <p>Build websites using web technologies.</p>
+        </div>
+
+        <div class="skill-card">
+          <h3>UI/UX Design</h3>
+          <p>Discover creative design skills.</p>
+        </div>
+      </div>
+    </section>
+
+    <script>
+      let email = localStorage.getItem("userEmail");
+      
+
+      if (email != null && email.trim() !== "") {
+        document.getElementById("registerLink").style.display = "none";
+        document.getElementById("loginLink").style.display = "none";
+        document.getElementById("dashboardLink").style.display = "inline-block";
+        document.getElementById("logoutButton").style.display = "inline-block";
+        document.getElementById("getStartedLink").style.display = "none";
+        document.getElementById("heroLoginLink").style.display = "none";
+        document.getElementById("heroDashboardLink").style.display =
+          "inline-block";
+      }
+
+      function logout() {
+        localStorage.removeItem("userEmail");
+        window.location.href = "index.html";
+      }
+    </script>
+    <script>
+      let email = localStorage.getItem("userEmail");
+
+      if (email != null && email.trim() !== "") {
+        window.location.replace("dashboard.html");
+      }
+    </script>
+    
+<script>
+  (function () {
+    const savedEmail = localStorage.getItem("userEmail");
+
+    if (savedEmail && savedEmail.trim() !== "") {
+      window.location.replace("dashboard.html");
+    }
+  })();
+</script>
+
+<script>
+  const savedEmail = localStorage.getItem("userEmail");
+
+  if (savedEmail && savedEmail.trim() !== "") {
+    document.getElementById("registerLink").style.display = "none";
+    document.getElementById("loginLink").style.display = "none";
+    document.getElementById("dashboardLink").style.display = "inline-block";
+    document.getElementById("logoutButton").style.display = "inline-block";
+    document.getElementById("getStartedLink").style.display = "none";
+    document.getElementById("heroLoginLink").style.display = "none";
+    document.getElementById("heroDashboardLink").style.display = "inline-block";
+  }
+
+  function logout() {
+    localStorage.removeItem("userEmail");
+    window.location.href = "index.html";
+  }
+</script>
+</body>
+</html>
+
+</body>
+</html>
+
+  </body>
+</html>

@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Learning Videos - SkillLink</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>SkillLink</h1>
+
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="students.html">Find Students</a>
+      <a href="requests.html">Requests</a>
+      <a href="connections.html">Connections</a>
+      <a href="add-video.html">Add Video</a>
+      <a href="videos.html">Learning Videos</a>
+      <a href="doubts.html">Doubt Discussion</a>
+      <a href="about.html">About</a>
+      <button onclick="logout()">Logout</button>
+
+      <hr />
+
+      <div class="about-container">
+        <h2>Learning Videos</h2>
+        <p>Explore videos shared by other SkillLink users.</p>
+        <div id="videosList">Loading videos...</div>
+      </div>
+    </div>
+
+    <script>
+      let email = localStorage.getItem("userEmail");
+
+      if (email == null) {
+        window.location.href = "login.html";
+      } else {
+        fetch("http://localhost:8080/videos?email=" + encodeURIComponent(email))
+          .then((response) => response.text())
+          .then((result) => {
+            let list = document.getElementById("videosList");
+            list.innerHTML = "";
+
+            if (result.trim() == "") {
+              list.textContent = "No videos have been shared yet.";
+              return;
+            }
+
+            let videos = result.split("||");
+
+            for (let i = 0; i < videos.length; i++) {
+              if (videos[i].trim() != "") {
+                let values = videos[i].split("|");
+
+                let video = document.createElement("div");
+                let title = document.createElement("h3");
+                let skill = document.createElement("p");
+                let teacher = document.createElement("p");
+                let link = document.createElement("a");
+
+                title.textContent = values[0];
+                skill.textContent = "Skill: " + values[1];
+                teacher.textContent = "Shared by: " + values[2];
+                link.textContent = "Watch Video";
+                link.href = values[3];
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+
+                video.appendChild(title);
+                video.appendChild(skill);
+                video.appendChild(teacher);
+                video.appendChild(link);
+
+                list.appendChild(video);
+              }
+            }
+          })
+          .catch(() => {
+            document.getElementById("videosList").textContent =
+              "Could not load videos. Please check whether the server is running.";
+          });
+      }
+    </script>
+    <script>
+      function logout() {
+        localStorage.removeItem("userEmail");
+        window.location.href = "login.html";
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Connections - SkillLink</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>SkillLink</h1>
+
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="students.html">Find Students</a>
+      <a href="requests.html">Requests</a>
+      <a href="connections.html">Connections</a>
+      <a href="add-video.html">Add Video</a>
+      <a href="videos.html">Learning Videos</a>
+      <a href="doubts.html">Doubt Discussion</a>
+      <a href="about.html">About</a>
+      <button onclick="logout()">Logout</button>
+
+      <hr />
+
+      <div class="about-container">
+        <h2>My Connections</h2>
+
+        <div id="connectionsList"></div>
+      </div>
+    </div>
+    <script>
+      let email = localStorage.getItem("userEmail");
+      if (email == null) {
+        window.location.href = "login.html";
+      }
+
+      if (email != null) {
+        fetch("http://localhost:8080/connections?email=" + email)
+          .then((response) => response.text())
+          .then((result) => {
+            let connections = result.split("||");
+
+            let list = document.getElementById("connectionsList");
+
+            for (let i = 0; i < connections.length; i++) {
+              if (connections[i] != "") {
+                let values = connections[i].split("|");
+
+                let connection = document.createElement("div");
+
+                connection.innerHTML =
+                  "<h3>" +
+                  values[0] +
+                  "</h3>" +
+                  "<p>Email: " +
+                  values[1] +
+                  "</p>" +
+                  "<p>Can Teach: " +
+                  values[2] +
+                  "</p>";
+
+                list.appendChild(connection);
+              }
+            }
+          });
+      }
+      function logout() {
+        localStorage.removeItem("userEmail");
+        window.location.href = "login.html";
+      }
+    </script>
+  </body>
+</html>

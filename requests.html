@@ -1,0 +1,136 @@
+```html
+<!doctype html>
+<html>
+  <head>
+    <title>Requests - SkillLink</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>SkillLink</h1>
+
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="students.html">Find Students</a>
+      <a href="requests.html">Requests</a>
+      <a href="connections.html">Connections</a>
+      <a href="add-video.html">Add Video</a>
+      <a href="videos.html">Learning Videos</a>
+      <a href="doubts.html">Doubt Discussion</a>
+      <a href="about.html">About</a>
+      <button onclick="logout()">Logout</button>
+
+      <hr />
+
+      <div class="about-container">
+        <h2>My Requests</h2>
+        <div id="requestsList">Loading requests...</div>
+      </div>
+    </div>
+
+    <script>
+      let email = localStorage.getItem("userEmail");
+      let list = document.getElementById("requestsList");
+
+      if (email == null) {
+        window.location.href = "login.html";
+      } else {
+        fetch(
+          "http://localhost:8080/requests?email=" + encodeURIComponent(email),
+        )
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Unable to fetch requests");
+            }
+            return response.text();
+          })
+          .then((result) => {
+            list.innerHTML = "";
+
+            if (result.trim() == "") {
+              list.innerText = "No requests received yet.";
+              return;
+            }
+
+            let requests = result.split("||");
+
+            for (let i = 0; i < requests.length; i++) {
+              if (requests[i].trim() != "") {
+                let values = requests[i].split("|");
+                let senderEmail = values[0];
+                let status = values[1];
+
+                let request = document.createElement("div");
+
+                let heading = document.createElement("h3");
+                heading.innerText = "Request from: " + senderEmail;
+
+                let statusText = document.createElement("p");
+                statusText.innerText = "Status: " + status;
+
+                request.appendChild(heading);
+                request.appendChild(statusText);
+
+                if (status == "Pending") {
+                  let acceptButton = document.createElement("button");
+                  acceptButton.innerText = "Accept";
+                  acceptButton.onclick = function () {
+                    updateRequest(senderEmail, "Accepted");
+                  };
+
+                  let rejectButton = document.createElement("button");
+                  rejectButton.innerText = "Reject";
+                  rejectButton.onclick = function () {
+                    updateRequest(senderEmail, "Rejected");
+                  };
+
+                  request.appendChild(acceptButton);
+                  request.appendChild(rejectButton);
+                }
+
+                list.appendChild(request);
+              }
+            }
+          })
+          .catch((error) => {
+            list.innerText =
+              "Could not load requests. Check whether the SkillLink server is running.";
+          });
+      }
+
+      function updateRequest(senderEmail, status) {
+        let receiverEmail = localStorage.getItem("userEmail");
+
+        let data =
+          "senderEmail=" +
+          encodeURIComponent(senderEmail) +
+          "&receiverEmail=" +
+          encodeURIComponent(receiverEmail) +
+          "&status=" +
+          encodeURIComponent(status);
+
+        fetch("http://localhost:8080/updateRequest", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: data,
+        })
+          .then((response) => response.text())
+          .then((result) => {
+            alert(result);
+            window.location.reload();
+          })
+          .catch(() => {
+            alert("Server connection failed.");
+          });
+      }
+      function logout() {
+        localStorage.removeItem("userEmail");
+        window.location.href = "login.html";
+      }
+    </script>
+  </body>
+</html>
+```

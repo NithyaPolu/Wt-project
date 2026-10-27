@@ -1,0 +1,117 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Add Teaching Video - SkillLink</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>SkillLink</h1>
+
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="students.html">Find Students</a>
+      <a href="requests.html">Requests</a>
+      <a href="connections.html">Connections</a>
+      <a href="add-video.html">Add Video</a>
+      <a href="videos.html">Learning Videos</a>
+      <a href="doubts.html">Doubt Discussion</a>
+      <a href="about.html">About</a>
+      <button onclick="logout()">Logout</button>
+
+      <hr />
+
+      <div class="about-container">
+        <h2>Add a Teaching Video</h2>
+        <p>Share a video to help others learn the skill you teach.</p>
+
+        <form id="videoForm">
+          <label for="title">Video Title</label>
+          <input
+            type="text"
+            id="title"
+            placeholder="Example: Java Basics"
+            required
+          />
+
+          <label for="skill">Skill Being Taught</label>
+          <input type="text" id="skill" placeholder="Example: Java" required />
+
+          <label for="videoUrl">YouTube Video Link</label>
+          <input
+            type="url"
+            id="videoUrl"
+            placeholder="Paste the YouTube link"
+            required
+          />
+
+          <button type="submit">Add Video</button>
+        </form>
+
+        <p id="message"></p>
+      </div>
+    </div>
+
+    <script>
+      let email = localStorage.getItem("userEmail");
+
+      if (email == null) {
+        window.location.href = "login.html";
+      }
+
+      document
+        .getElementById("videoForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          let title = document.getElementById("title").value.trim();
+          let skill = document.getElementById("skill").value.trim();
+          let videoUrl = document.getElementById("videoUrl").value.trim();
+
+          if (!email) {
+            window.location.href = "login.html";
+            return;
+          }
+
+          if (
+            !/^https:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[^\s]+/.test(
+              videoUrl,
+            )
+          ) {
+            document.getElementById("message").textContent =
+              "Please enter a valid YouTube video link.";
+            return;
+          }
+
+          let data = new URLSearchParams({
+            teacherEmail: email,
+            title: title,
+            skill: skill,
+            videoUrl: videoUrl,
+          });
+
+          fetch("http://localhost:8080/addVideo", {
+            method: "POST",
+            body: data,
+          })
+            .then((response) => response.text())
+            .then((result) => {
+              document.getElementById("message").textContent = result;
+
+              if (result.trim() === "Video added successfully!") {
+                document.getElementById("videoForm").reset();
+              }
+            })
+            .catch(() => {
+              document.getElementById("message").textContent =
+                "Server connection failed.";
+            });
+        });
+      function logout() {
+        localStorage.removeItem("userEmail");
+        window.location.href = "login.html";
+      }
+    </script>
+  </body>
+</html>

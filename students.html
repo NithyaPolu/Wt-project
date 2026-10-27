@@ -1,0 +1,194 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Find Students - SkillLink</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>SkillLink</h1>
+
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="students.html">Find Students</a>
+      <a href="requests.html">Requests</a>
+      <a href="connections.html">Connections</a>
+      <a href="add-video.html">Add Video</a>
+      <a href="videos.html">Learning Videos</a>
+      <a href="doubts.html">Doubt Discussion</a>
+      <a href="about.html">About</a>
+      <button onclick="logout()">Logout</button>
+
+      <hr />
+
+      <div class="about-container">
+        <h2>Find Students</h2>
+        <p>Find students who can teach the skills you want to learn.</p>
+
+        <div id="studentsList">Loading students...</div>
+      </div>
+    </div>
+
+    <script>
+      let email = localStorage.getItem("userEmail");
+      let list = document.getElementById("studentsList");
+
+      if (email == null) {
+        window.location.href = "login.html";
+      } else {
+        loadStudents();
+      }
+
+      function loadStudents() {
+        fetch(
+          "http://localhost:8080/students?email=" + encodeURIComponent(email),
+        )
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Could not load students");
+            }
+            return response.text();
+          })
+          .then((result) => {
+            list.innerHTML = "";
+
+            if (result.trim() == "") {
+              list.innerHTML = "<p>No matching students found.</p>";
+              return;
+            }
+
+            let students = result.split("||");
+
+            for (let i = 0; i < students.length; i++) {
+              if (students[i].trim() == "") {
+                continue;
+              }
+
+              let values = students[i].split("|");
+
+              if (values.length < 3) {
+                continue;
+              }
+
+              let student = document.createElement("div");
+              let name = document.createElement("h3");
+              let emailText = document.createElement("p");
+              let skillText = document.createElement("p");
+              let statusText = document.createElement("p");
+              let button = document.createElement("button");
+
+              name.textContent = values[0];
+              emailText.textContent = "Email: " + values[1];
+              skillText.textContent = "Can Teach: " + values[2];
+
+              button.textContent = "Checking request...";
+              button.disabled = true;
+
+              student.appendChild(name);
+              student.appendChild(emailText);
+              student.appendChild(skillText);
+              student.appendChild(statusText);
+              student.appendChild(button);
+              list.appendChild(student);
+
+              checkRequestStatus(values[1], statusText, button);
+            }
+          })
+          .catch((error) => {
+            list.textContent =
+              "Could not load students. Check whether the Java server is running.";
+            console.error(error);
+          });
+      }
+
+      function checkRequestStatus(receiverEmail, statusText, button) {
+        fetch(
+          "http://localhost:8080/requestStatus?senderEmail=" +
+            encodeURIComponent(email) +
+            "&receiverEmail=" +
+            encodeURIComponent(receiverEmail),
+        )
+          .then((response) => response.text())
+          .then((status) => {
+            status = status.trim();
+
+            if (status == "Accepted") {
+              statusText.textContent = "Status: Connected";
+              button.textContent = "Connected";
+              button.disabled = true;
+            } else if (status == "Pending") {
+              statusText.textContent = "Status: Request Pending";
+              button.textContent = "Request Pending";
+              button.disabled = true;
+            } else {
+              statusText.textContent = "Status: Not connected";
+              button.textContent = "Send Request";
+              button.disabled = false;
+
+              button.onclick = function () {
+                sendRequest(receiverEmail, button);
+              };
+            }
+          })
+          .catch((error) => {
+            statusText.textContent = "Could not check request status.";
+            button.textContent = "Try Again";
+            button.disabled = false;
+
+            button.onclick = function () {
+              checkRequestStatus(receiverEmail, statusText, button);
+            };
+
+            console.error(error);
+          });
+      }
+
+      function sendRequest(receiverEmail, button) {
+        button.disabled = true;
+        button.textContent = "Sending...";
+
+        let data =
+          "senderEmail=" +
+          encodeURIComponent(email) +
+          "&receiverEmail=" +
+          encodeURIComponent(receiverEmail);
+
+        fetch("http://localhost:8080/request", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: data,
+        })
+          .then((response) => response.text())
+          .then((result) => {
+            alert(result);
+
+            if (result.includes("Request sent successfully")) {
+              button.textContent = "Request Pending";
+            } else if (result.includes("Already connected")) {
+              button.textContent = "Connected";
+            } else if (result.includes("Request already exists")) {
+              button.textContent = "Request Already Exists";
+            } else {
+              button.textContent = "Send Request";
+              button.disabled = false;
+            }
+
+            loadStudents();
+          })
+          .catch((error) => {
+            alert("Server connection failed.");
+            button.textContent = "Send Request";
+            button.disabled = false;
+            console.error(error);
+          });
+      }
+      function logout() {
+        localStorage.removeItem("userEmail");
+        window.location.href = "login.html";
+      }
+    </script>
+  </body>
+</html>

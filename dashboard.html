@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Dashboard - SkillLink</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>SkillLink</h1>
+
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="students.html">Find Students</a>
+      <a href="requests.html">Requests</a>
+      <a href="connections.html">Connections</a>
+      <a href="add-video.html">Add Video</a>
+      <a href="videos.html">Learning Videos</a>
+      <a href="doubts.html">Doubt Discussion</a>
+      <a href="about.html">About</a>
+      <button onclick="logout()">Logout</button>
+
+      <hr />
+
+      <div class="container dashboard-page">
+        <h2>Student Dashboard</h2>
+
+        <h3>Welcome to SkillLink!</h3>
+
+        <p>Manage your skills and connect with other students.</p>
+
+        <h3>My Profile</h3>
+
+        <p>Name: <span id="name"></span></p>
+
+        <p>Email: <span id="email"></span></p>
+
+        <h3>My Skills</h3>
+
+        <p>Skill I Can Teach: <span id="teachSkill"></span></p>
+
+        <p>Skill I Want to Learn: <span id="learnSkill"></span></p>
+
+        <h3>Find Students</h3>
+
+        <p>Connect with students who have the skills you want to learn.</p>
+
+        <button onclick="window.location.href = 'students.html'">
+          Find Students
+        </button>
+      </div>
+    </div>
+    <script>
+      let email = localStorage.getItem("userEmail");
+
+      if (email == null) {
+        window.location.href = "login.html";
+      }
+
+      if (email != null) {
+        fetch("http://localhost:8080/profile?email=" + email)
+          .then((response) => response.text())
+          .then((result) => {
+            let values = result.split("|");
+
+            document.getElementById("name").innerText = values[0];
+            document.getElementById("email").innerText = values[1];
+            document.getElementById("teachSkill").innerText = values[2];
+            document.getElementById("learnSkill").innerText = values[3];
+          });
+      }
+      function logout() {
+        localStorage.removeItem("userEmail");
+
+        window.location.href = "login.html";
+      }
+    </script>
+  </body>
+</html>
